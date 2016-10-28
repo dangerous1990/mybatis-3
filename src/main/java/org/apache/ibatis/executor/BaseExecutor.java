@@ -45,6 +45,7 @@ import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
+ *
  * @author Clinton Begin
  */
 public abstract class BaseExecutor implements Executor {
@@ -113,7 +114,9 @@ public abstract class BaseExecutor implements Executor {
     if (closed) {
       throw new ExecutorException("Executor was closed.");
     }
+    //先清空本地缓存
     clearLocalCache();
+    //模板模式 交给子类去实现
     return doUpdate(ms, parameter);
   }
 

@@ -87,6 +87,13 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     return configuration;
   }
 
+  /**
+   * 从数据源开启事务
+   * @param execType 执行类型
+   * @param level 事务级别
+   * @param autoCommit 是否自动提交
+   * @return
+   */
   private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) {
     Transaction tx = null;
     try {
@@ -107,16 +114,21 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     try {
       boolean autoCommit;
       try {
+        //从jdbc获取自动提交参数
         autoCommit = connection.getAutoCommit();
       } catch (SQLException e) {
         // Failover to true, as most poor drivers
         // or databases won't support transactions
+        //获取出错一般是jdbc驱动或者数据库不支持事务
         autoCommit = true;
       }      
       final Environment environment = configuration.getEnvironment();
       final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
+      //根据传进来的数据库连接创建一个事务
       final Transaction tx = transactionFactory.newTransaction(connection);
+      //创建一个执行器
       final Executor executor = configuration.newExecutor(tx, execType);
+      //组合成一个sesstion对象返回
       return new DefaultSqlSession(configuration, executor, autoCommit);
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error opening session.  Cause: " + e, e);

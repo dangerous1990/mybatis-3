@@ -16,6 +16,7 @@
 package org.apache.ibatis.session;
 
 /**
+ * 行界限
  * @author Clinton Begin
  */
 public class RowBounds {

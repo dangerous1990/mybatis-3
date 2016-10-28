@@ -18,14 +18,15 @@ package org.apache.ibatis.session;
 import java.sql.Connection;
 
 /**
+ * 事务隔离
  * @author Clinton Begin
  */
 public enum TransactionIsolationLevel {
-  NONE(Connection.TRANSACTION_NONE),
-  READ_COMMITTED(Connection.TRANSACTION_READ_COMMITTED),
-  READ_UNCOMMITTED(Connection.TRANSACTION_READ_UNCOMMITTED),
-  REPEATABLE_READ(Connection.TRANSACTION_REPEATABLE_READ),
-  SERIALIZABLE(Connection.TRANSACTION_SERIALIZABLE);
+  NONE(Connection.TRANSACTION_NONE),//无事务
+  READ_COMMITTED(Connection.TRANSACTION_READ_COMMITTED),//读已提交
+  READ_UNCOMMITTED(Connection.TRANSACTION_READ_UNCOMMITTED),//读未提交
+  REPEATABLE_READ(Connection.TRANSACTION_REPEATABLE_READ),//可重复读
+  SERIALIZABLE(Connection.TRANSACTION_SERIALIZABLE);//悲观锁
 
   private final int level;
 

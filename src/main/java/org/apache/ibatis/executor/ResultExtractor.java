@@ -34,6 +34,7 @@ public class ResultExtractor {
     this.objectFactory = objectFactory;
   }
 
+
   public Object extractObjectFromList(List<Object> list, Class<?> targetType) {
     Object value = null;
     if (targetType != null && targetType.isAssignableFrom(list.getClass())) {

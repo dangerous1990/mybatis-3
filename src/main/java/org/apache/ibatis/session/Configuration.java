@@ -102,31 +102,43 @@ public class Configuration {
   protected boolean mapUnderscoreToCamelCase = false;
   protected boolean aggressiveLazyLoading = true;
   protected boolean multipleResultSetsEnabled = true;
+  //是否生成主键
   protected boolean useGeneratedKeys = false;
+  //是否使用生成列别名
   protected boolean useColumnLabel = true;
+  //缓存是否开启
   protected boolean cacheEnabled = true;
+  //是否允许update set null
   protected boolean callSettersOnNulls = false;
   protected boolean useActualParamName = true;
+  //空行是否返回示例
   protected boolean returnInstanceForEmptyRow = false;
 
   protected String logPrefix;
   protected Class <? extends Log> logImpl;
   protected Class <? extends VFS> vfsImpl;
+  //本地缓存scope
   protected LocalCacheScope localCacheScope = LocalCacheScope.SESSION;
   protected JdbcType jdbcTypeForNull = JdbcType.OTHER;
   protected Set<String> lazyLoadTriggerMethods = new HashSet<String>(Arrays.asList(new String[] { "equals", "clone", "hashCode", "toString" }));
   protected Integer defaultStatementTimeout;
   protected Integer defaultFetchSize;
   protected ExecutorType defaultExecutorType = ExecutorType.SIMPLE;
+  //局部自动映射行为
   protected AutoMappingBehavior autoMappingBehavior = AutoMappingBehavior.PARTIAL;
+  //自动映射未知列行为
   protected AutoMappingUnknownColumnBehavior autoMappingUnknownColumnBehavior = AutoMappingUnknownColumnBehavior.NONE;
 
   protected Properties variables = new Properties();
+  //反射工厂
   protected ReflectorFactory reflectorFactory = new DefaultReflectorFactory();
+  //对象工厂
   protected ObjectFactory objectFactory = new DefaultObjectFactory();
+  //对象包装工厂
   protected ObjectWrapperFactory objectWrapperFactory = new DefaultObjectWrapperFactory();
 
   protected boolean lazyLoadingEnabled = false;
+  //字节码代理 javassist
   protected ProxyFactory proxyFactory = new JavassistProxyFactory(); // #224 Using internal Javassist instead of OGNL
 
   protected String databaseId;
@@ -137,11 +149,15 @@ public class Configuration {
    * @see <a href='https://code.google.com/p/mybatis/issues/detail?id=300'>Issue 300 (google code)</a>
    */
   protected Class<?> configurationFactory;
-
+  //mapper
   protected final MapperRegistry mapperRegistry = new MapperRegistry(this);
+  //拦截器链
   protected final InterceptorChain interceptorChain = new InterceptorChain();
+  //类型注册
   protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry();
+  //类型别名注册
   protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
+  //TODO 国际化？
   protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
 
   protected final Map<String, MappedStatement> mappedStatements = new StrictMap<MappedStatement>("Mapped Statements collection");
@@ -171,6 +187,7 @@ public class Configuration {
   }
 
   public Configuration() {
+    //TODO 先缓存一些别名，在哪里是使用？
     typeAliasRegistry.registerAlias("JDBC", JdbcTransactionFactory.class);
     typeAliasRegistry.registerAlias("MANAGED", ManagedTransactionFactory.class);
 
@@ -530,6 +547,7 @@ public class Configuration {
 
   public ParameterHandler newParameterHandler(MappedStatement mappedStatement, Object parameterObject, BoundSql boundSql) {
     ParameterHandler parameterHandler = mappedStatement.getLang().createParameterHandler(mappedStatement, parameterObject, boundSql);
+    //可拦截参数
     parameterHandler = (ParameterHandler) interceptorChain.pluginAll(parameterHandler);
     return parameterHandler;
   }
@@ -537,12 +555,15 @@ public class Configuration {
   public ResultSetHandler newResultSetHandler(Executor executor, MappedStatement mappedStatement, RowBounds rowBounds, ParameterHandler parameterHandler,
       ResultHandler resultHandler, BoundSql boundSql) {
     ResultSetHandler resultSetHandler = new DefaultResultSetHandler(executor, mappedStatement, parameterHandler, resultHandler, boundSql, rowBounds);
+    //可拦截结果集
     resultSetHandler = (ResultSetHandler) interceptorChain.pluginAll(resultSetHandler);
     return resultSetHandler;
   }
 
+
   public StatementHandler newStatementHandler(Executor executor, MappedStatement mappedStatement, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
     StatementHandler statementHandler = new RoutingStatementHandler(executor, mappedStatement, parameterObject, rowBounds, resultHandler, boundSql);
+    //可拦截预编译
     statementHandler = (StatementHandler) interceptorChain.pluginAll(statementHandler);
     return statementHandler;
   }
@@ -551,18 +572,31 @@ public class Configuration {
     return newExecutor(transaction, defaultExecutorType);
   }
 
+  /**
+   * 根据不同执行类型创建一个执行器
+   * 根据插件类型wrap executor，几个插件wrap几层（责任链？）
+   * 使用jdk动态代理进行wrap
+   * invoke3(invoke2(invoke()))
+   * @param transaction
+   * @param executorType
+   * @return
+   */
   public Executor newExecutor(Transaction transaction, ExecutorType executorType) {
     executorType = executorType == null ? defaultExecutorType : executorType;
     executorType = executorType == null ? ExecutorType.SIMPLE : executorType;
     Executor executor;
     if (ExecutorType.BATCH == executorType) {
+      //批量
       executor = new BatchExecutor(this, transaction);
     } else if (ExecutorType.REUSE == executorType) {
+      //重用
       executor = new ReuseExecutor(this, transaction);
     } else {
+      //简单
       executor = new SimpleExecutor(this, transaction);
     }
     if (cacheEnabled) {
+      //如果开启缓存 使用缓存执行器 TODO 装饰器模式？
       executor = new CachingExecutor(executor);
     }
     executor = (Executor) interceptorChain.pluginAll(executor);
@@ -795,6 +829,7 @@ public class Configuration {
   }
 
   // Slow but a one time cost. A better solution is welcome.
+  // 很慢 需要更多的解决办法
   protected void checkGloballyForDiscriminatedNestedResultMaps(ResultMap rm) {
     if (rm.hasNestedResultMaps()) {
       for (Map.Entry<String, ResultMap> entry : resultMaps.entrySet()) {

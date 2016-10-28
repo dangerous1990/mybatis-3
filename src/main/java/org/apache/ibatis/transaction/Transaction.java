@@ -20,6 +20,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
+ * 数据库事务抽象类 包括事务、准备、提交、回滚，数据库连接关闭、创建
  * Wraps a database connection.
  * Handles the connection lifecycle that comprises: its creation, preparation, commit/rollback and close. 
  *

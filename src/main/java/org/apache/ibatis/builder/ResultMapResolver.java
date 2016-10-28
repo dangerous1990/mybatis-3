@@ -22,6 +22,7 @@ import org.apache.ibatis.mapping.ResultMap;
 import org.apache.ibatis.mapping.ResultMapping;
 
 /**
+ * ResultMap 解析器
  * @author Eduardo Macarron
  */
 public class ResultMapResolver {
